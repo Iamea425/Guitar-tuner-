@@ -1,5 +1,4 @@
 import numpy as np
-import aubio
 from audio import recording
 from scipy.signal import butter,filtfilt
 
@@ -22,9 +21,6 @@ class Getting_pitch():
     def getting_pitch_start(self):
 
         self.audio_import.start_recording()
-        self.__pitch_o = aubio.pitch("mcomb", self.__win_s, self.__hop_s, self.__rate)
-        self.__pitch_o.set_unit("midi")
-        self.__pitch_o.set_tolerance(self.__tolerance)
 
         #takes recording info from audio class 
         self.__stream=self.audio_import.data_extract()
@@ -42,11 +38,7 @@ class Getting_pitch():
         self.data=self.harmonic_filter()
         self.data=np.array(self.data,np.float32)
         final_data_Hz=self.DFT_analyser()
-        final_data= 69 + 12 * np.log2(final_data_Hz / 440.0) if final_data_Hz > 0 else 0
-        pitch=self.__pitch_o(self.data)[0]
-        confidence=self.__pitch_o.get_confidence()
-        
-        self.value_with_confidence="{} / {}".format(pitch,confidence)
+
 
 
         return final_data_Hz
