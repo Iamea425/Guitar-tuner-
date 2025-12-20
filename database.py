@@ -88,16 +88,20 @@ class Database():
        
         self.connect.close()
 
-    def set_to_standard_tuning (self):
+    def retrive_tuning (self,tuning_name):
 
         self.connect_to_database()
 
         generic_query = ("SELECT str_1_note,str_2_note,str_3_note,str_4_note,str_5_note,str_6_note FROM TUNINGS WHERE Tuning_name = ?")
-        tuning_name = ("standard")
-        self.cursor.execute(generic_query,(tuning_name,))
-        row=self.cursor.fetchone()
-        if row: #converts the tuple into a string
-            return row
+        while True:
+            try:
+                self.cursor.execute(generic_query,(tuning_name,))
+            except:
+                return "database rerival error"
+            
+            row=self.cursor.fetchone()
+            if row: #converts the tuple into a string
+                return row
         
     
     def retrieve_database_collum(self,collumn_name):
@@ -116,5 +120,3 @@ class Database():
 
             self.connect.close()
             return results_list
- 
-            

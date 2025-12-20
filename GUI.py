@@ -10,7 +10,7 @@ class main_menu(tk.Tk):
 
 
 
-    def __init__(self):
+    def __init__(self,tuning_name):
 
         self.root=tk.Tk() 
         self.root.title("Guitar Tuner")
@@ -18,7 +18,7 @@ class main_menu(tk.Tk):
         self.root.configure(bg="lightblue")
         self.database = Database()
         self.database.check_exist()
-        self.current_tuning = self.database.set_to_standard_tuning()
+        self.current_tuning = self.database.retrive_tuning(tuning_name)
         header_frame = tk.Frame(self.root, bg="lightblue")
         header_frame.pack(side="top",fill = "x", pady=10)
         tune_button=tk.Button(self.root, 
@@ -276,5 +276,5 @@ class Tuning_database (tk.Tk):
         
 
 
-test=main_menu()
+test=main_menu(tuning_name="standard")
 test.mainloop

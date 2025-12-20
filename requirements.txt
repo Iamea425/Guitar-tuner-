@@ -1,0 +1,6 @@
+pyaudio
+time
+tkinter
+os
+sqlite3
+numpy
