@@ -6,7 +6,7 @@ class recording:
 
     def __init__(self):
         #setting recording parameters
-        self.__chunk=4096
+        self.__chunk=8192
         self.__format=pyaudio.paFloat32
         self.__channels=1
         self.__rate=44100
@@ -15,7 +15,7 @@ class recording:
 
 
     def start_recording(self):
-        frames=[]
+
         self.__stream=self.__input.open(format=self.__format,
                             channels=self.__channels,
                             rate=self.__rate,
