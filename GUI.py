@@ -11,17 +11,18 @@ class main_menu(tk.Tk):
 
 
     def __init__(self,tuning_name):
+        super().__init__()
 
-        self.root=tk.Tk() 
-        self.root.title("Guitar Tuner")
-        self.root.geometry("1600x900")
-        self.root.configure(bg="lightblue")
+        
+        self.title("Guitar Tuner")
+        self.geometry("1600x900")
+        self.configure(bg="lightblue")
         self.database = Database()
         self.database.check_exist()
         self.current_tuning = self.database.retrive_tuning(tuning_name)
-        header_frame = tk.Frame(self.root, bg="lightblue")
+        header_frame = tk.Frame(self, bg="lightblue")
         header_frame.pack(side="top",fill = "x", pady=10)
-        tune_button=tk.Button(self.root, 
+        tune_button=tk.Button(self, 
                            text="Tune",
                            width=15,
                            height=2,
@@ -37,9 +38,9 @@ class main_menu(tk.Tk):
                                height= 3
         )
 
-        database_button = tk.Button(self.root,
-                                    text= "Choose Tuning",
-                                    width=15,
+        database_button = tk.Button(self,
+                                    text= "Choose or Edit Tuning",
+                                    width=20,
                                     height=2,
                                     font=("arial",20),
                                     command=self.open_database_menu,
@@ -68,18 +69,18 @@ class main_menu(tk.Tk):
         tune_button.pack(expand=True,side="right",padx=1,pady=5)
 
     
-        self.root.mainloop()
+        self.mainloop()
 
 
 
     def open_tuning_interface(self):
-        self.root.destroy()
+        self.destroy()
         instance=Tuning_interface()
         instance.mainloop()
 
     def open_database_menu(self):
-        self.root.destroy()
-        instance=Tuning_database()
+        self.destroy()
+        instance=Edit_or_choose_tuning()
         instance.mainloop()
 
 
@@ -162,7 +163,7 @@ class Tuning_interface(tk.Tk):
 
 
 
-class Tuning_database (tk.Tk):
+class Tuning_editor (tk.Tk):
 
 
     def __init__(self):
@@ -250,7 +251,7 @@ class Tuning_database (tk.Tk):
 
     def return_to_main_menu(self):
         self.destroy()
-        instance = main_menu()
+        instance = main_menu(tuning_name="standard")
         instance.mainloop()
 
 
@@ -273,7 +274,53 @@ class Tuning_database (tk.Tk):
 
 
 
+class Edit_or_choose_tuning(tk.Tk):
+
+
+    def __init__(self):
+        super().__init__()
+        self.title("Edit or Choose Tuning")
+        self.geometry("1600x900")
+        self.configure(bg="lightblue")
+
+        self.edit_button = tk.Button(self,
+                                text="Edit or Add New Tuning",
+                                font=("arial",20),
+                                 command=self.to_tuning_editor
+                                )
+    
+        self.choose_button = tk.Button(self,
+                                       text="Choose Tuning",
+                                       font=("arial",20),
+                                       command=self.to_tuning_list)
         
+        self.edit_button.pack(side="left",padx=2,expand=True)
+        self.choose_button.pack(side="right",padx=2,expand=True)
+
+
+    def to_tuning_editor(self):
+
+        self.destroy()
+        instance=Tuning_editor()
+        instance.mainloop()
+    
+    
+    def to_tuning_list(self):
+
+        self.destroy()
+        instance=Tuning_list()
+        instance.mainloop()
+
+
+
+
+class Tuning_list(tk.Tk):
+    
+    def __init__(self):
+        super().__init__()
+        self.title("Choose Tuning")
+        self.geometry("1600x900")
+        self.configure(bg="lightblue")
 
 
 test=main_menu(tuning_name="standard")
