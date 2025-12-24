@@ -157,7 +157,7 @@ class Tuning_interface(tk.Tk):
 
     def return_to_main_menu(self):
 
-        self.root.destroy()
+        self.destroy()
         instance = main_menu()
         instance.mainloop()
 
