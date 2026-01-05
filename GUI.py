@@ -148,17 +148,17 @@ class Tuning_interface(tk.Tk):
                 self.pitch=100
 
             self.bar["value"]=self.pitch
-            self.root.update()
-        self.root.after(300, self.update_bar)
+            self.update()
+        self.after(300, self.update_bar)
 
     def update_hertz_value(self):
 
-        self.hertz_value.config(text = f"{round(self.pitch, 2)} Hz")
+        self.hertz_value.config(text = f"{round(self.pitch, 1)} Hz")
 
     def return_to_main_menu(self):
 
         self.destroy()
-        instance = main_menu()
+        instance = main_menu(tuning_name="standard")#tuning_name to be dynamic in future
         instance.mainloop()
 
 
@@ -191,7 +191,7 @@ class Tuning_editor (tk.Tk):
         new_tuning_button=tk.Button(self,
                                    text="Create New Tuning",
                                    font=("arial",16),
-                                   command=self.create_new_tuning())
+                                   command=self.tuning_complete())
 
         notes=self.database.value_retrieval() # creates all combonations of note and octave
         for octaves in range (1,5):
@@ -199,14 +199,19 @@ class Tuning_editor (tk.Tk):
                 note_list.append(f"{note} {octaves}" )
 
         top_container = tk.Frame(self, bg="lightblue")
-        top_container.pack(pady=20, padx=(0,10), anchor="n", fill="x")
+        top_container.pack(pady=20, padx=(0,10), anchor="n")
 
 
         choice_frame = tk.Frame(self, bg="lightblue") # groups the comboboxes together 
-        choice_frame.pack(pady=20,side="right",padx=20)
+        choice_frame.pack(pady=(20,0),side="right",padx=20)
 
         name_input_frame = tk.Frame(self, bg = "lightblue" )
-        name_input_frame.pack(pady = 20, padx = (0,10),anchor = "center",fill="x"  )
+        name_input_frame.pack(pady = 20, padx = (0,10),anchor = "center" )
+
+        confirm_new_tuning_button = tk.Button(name_input_frame,
+                                                text="Confirm New Tuning",
+                                                font=("arial",16),
+                                                command=self.create_new_tuning)
 
         for i in range (1,7): # loops the combobox creation for all 6 strings
 
@@ -255,14 +260,15 @@ class Tuning_editor (tk.Tk):
         back_to_main_menu.pack(side = "bottom", pady=30)
 
         tuning_namer_box = tk.Entry(name_input_frame, font=("arial",18), width = 30)
-        tuning_namer_box.pack(pady = 10,side="bottom",padx=50)
-
+        tuning_namer_box.pack(pady = 10,padx=50)
         tuning_namer_label = tk.Label(name_input_frame,
                                       font=("arial",14),
                                       text="Tuning Name",
                                       bg = "lightblue",
                                       width = 30 )
         tuning_namer_label.pack(side="top")
+        confirm_new_tuning_button.pack(side="bottom",pady=(20,0))
+
 
 
     def return_to_main_menu(self):
@@ -300,6 +306,11 @@ class Tuning_editor (tk.Tk):
 
         self.tuning_display.config(text=tuning_values)
 
+    def tuning_complete(self):
+        if self.new_tuning == True:
+            pass
+        else:
+            pass
 
 
 
