@@ -106,9 +106,10 @@ class Database():
             except:
                 return "database rerival error"
             
-            row=self.cursor.fetchone()
-            if row: #converts the tuple into a string
-                return row
+            tuning=self.cursor.fetchone()
+            tuning= tuning[::-1] #reverses the tuple so that string 1 is first in the tuple
+            if tuning: #converts the tuple into a string
+                return tuning
         
     
     def retrieve_database_collum(self,collumn_name):
