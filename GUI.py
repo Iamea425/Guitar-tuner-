@@ -337,19 +337,20 @@ class Tuning_editor (tk.Tk):
         name_index=self.tunings_list.curselection()
         if name_index:
             name_index = name_index[0]
-            self.tuning_name=self.tunings_list.get(name_index)
-            notes, octaves = self.database.retrive_tuning(self.tuning_name)
+            self.original_tuning_name=self.tunings_list.get(name_index)
+            notes, octaves = self.database.retrive_tuning(self.original_tuning_name)
             for i in range (0,len(notes)):
                 tuning_values += f"{notes[i]} {octaves[i]}, "
                 self.final_tuning[i+1]= f"{notes[i]} {octaves[i]}"
 
-            self.tuning_namer_box.insert(0,self.tuning_name)
+            self.tuning_namer_box.insert(0,self.original_tuning_name)
             
 
             self.tuning_display.config(text=tuning_values)
 
         else:
             print("Error: No Tuning selected")
+
 
     def tuning_complete(self):
 
@@ -362,10 +363,8 @@ class Tuning_editor (tk.Tk):
         if can_continue== True:
 
             for string_number, value in self.final_tuning.items(): # seperates note and octave for database insertion
-                print(value)
+                
                 note, octave = str(value).split(" ")
-                print(note)
-                print(octave)
                 tuning_proper_format.append(note)
                 tuning_proper_format.append(int(octave))
 
@@ -377,14 +376,13 @@ class Tuning_editor (tk.Tk):
             elif self.new_tuning == True:
             
                 print("Creating New Tuning")
-                self.database.insert_new_tuning(tuning_values=tuning_proper_format, tuning_name=new_tuning_name)
+                new_tuning_name = self.tuning_namer_box.get()
+                self.database.insert_new_tuning(tuning_values=tuning_proper_format, tuning_name = new_tuning_name, new_tuning_name = new_tuning_name)
 
             elif self.new_tuning == False:
-                if self.tuning_name != self.tuning_namer_box.get():
-                    changing_name = True
-                    self.database.edit_tuning(tuning_proper_format, new_tuning_name, changing_name, original_name=self.tuning_name)
-                else:
-                    self.database.edit_tuning(tuning_proper_format, new_tuning_name, changing_name=False)
+
+                self.database.edit_tuning(tuning_proper_format, new_tuning_name, original_name=self.original_tuning_name)
+
 
         else:
             print("Error: Not all strings have been assigned a note")#to be replaced with proper pop up error message

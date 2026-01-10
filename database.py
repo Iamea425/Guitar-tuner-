@@ -8,7 +8,7 @@ class Database():
          
          #set hardcoded possible databse entries 
          self.VALID_VALUES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
-         self.OCTIVES = [1,2,3,4]
+         self.OCTAVES = [1,2,3,4]
          self.CORROSPONDING_FREQUENCIES = [55, 58.27, 61.74, 32.70, 34.65 ,65, 36.71 ,38.89 ,41.2 ,43.65 ,46.25 ,49 ,41.91]
          self.standard_tuning_insert = ("""
                                 INSERT INTO TUNINGS (
@@ -140,10 +140,10 @@ class Database():
 
     def insert_new_tuning (self, tuning_values, tuning_name):
 
+        print("new tuning")
         self.connect_to_database()
 
         data_to_insert = (tuning_name, *tuning_values[0:13])
-        print(data_to_insert)
 
         insert_query = f"""
                                 INSERT INTO TUNINGS (
@@ -168,5 +168,25 @@ class Database():
 
         
 
-    def edit_tuning (self, tuning_values, tuning_name, changing_name,original_name=None):
-        pass
+    def edit_tuning (self, tuning_values, new_tuning_name, original_name):
+        
+        print("editing tuning")
+        self.connect_to_database()  
+
+        update_query = f""" 
+            UPDATE TUNINGS
+            SET Tuning_name = ?,
+                str_1_note = ?, str_1_oct = ?,
+                str_2_note = ?, str_2_oct = ?,
+                str_3_note = ?, str_3_oct = ?,
+                str_4_note = ?, str_4_oct = ?,
+                str_5_note = ?, str_5_oct = ?,
+                str_6_note = ?, str_6_oct = ?
+            WHERE Tuning_name = ?"""
+        
+        data_to_update = (new_tuning_name, *tuning_values[0:13], original_name)
+
+        self.cursor.execute(update_query, data_to_update)
+        self.connect.commit()
+        self.connect.close()
+        return
