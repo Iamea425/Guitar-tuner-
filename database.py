@@ -10,6 +10,17 @@ class Database():
          self.VALID_VALUES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
          self.OCTIVES = [1,2,3,4]
          self.CORROSPONDING_FREQUENCIES = [55, 58.27, 61.74, 32.70, 34.65 ,65, 36.71 ,38.89 ,41.2 ,43.65 ,46.25 ,49 ,41.91]
+         self.standard_tuning_insert = ("""
+                                INSERT INTO TUNINGS (
+                                Tuning_name,
+                                str_1_note, str_1_oct,
+                                str_2_note, str_2_oct,
+                                str_3_note, str_3_oct,
+                                str_4_note, str_4_oct,
+                                str_5_note, str_5_oct,
+                                str_6_note, str_6_oct
+                                  )
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
 
 
     def connect_to_database(self):
@@ -51,17 +62,6 @@ class Database():
         self.connect.commit()
 
 
-        standard_tuning_insert = ("""
-                                INSERT INTO TUNINGS (
-                                Tuning_name,
-                                str_1_note, str_1_oct,
-                                str_2_note, str_2_oct,
-                                str_3_note, str_3_oct,
-                                str_4_note, str_4_oct,
-                                str_5_note, str_5_oct,
-                                str_6_note, str_6_oct
-                                  )
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""")
         
         standard_tunings_values = (
                                 "standard",
@@ -73,7 +73,7 @@ class Database():
                                 "E", 2
                                 )
         
-        self.cursor.execute(standard_tuning_insert,standard_tunings_values)
+        self.cursor.execute(self.standard_tuning_insert,standard_tunings_values)
         self.connect.commit()
     
 
@@ -99,17 +99,24 @@ class Database():
 
         self.connect_to_database()
 
-        generic_query = ("SELECT str_1_note,str_2_note,str_3_note,str_4_note,str_5_note,str_6_note FROM TUNINGS WHERE Tuning_name = ?")
+        note_retrieve_query = ("SELECT str_1_note,str_2_note,str_3_note,str_4_note,str_5_note,str_6_note FROM TUNINGS WHERE Tuning_name = ?")
+        octave_retrieve_query = ("SELECT str_1_oct,str_2_oct,str_3_oct,str_4_oct,str_5_oct,str_6_oct FROM TUNINGS WHERE Tuning_name = ?")
         while True:
             try:
-                self.cursor.execute(generic_query,(tuning_name,))
+                self.cursor.execute(note_retrieve_query,(tuning_name,))
             except:
-                return "database rerival error"
+                return "Note Retrival Error"
             
-            tuning=self.cursor.fetchone()
-            tuning= tuning[::-1] #reverses the tuple so that string 1 is first in the tuple
-            if tuning: #converts the tuple into a string
-                return tuning
+            notes=self.cursor.fetchone()
+
+            while True:
+                try:
+                    self.cursor.execute(octave_retrieve_query,(tuning_name,))
+                except:
+                    return "Octave Retrival Error"
+                break
+            octaves=self.cursor.fetchone()
+            return list(notes), list(octaves)
         
     
     def retrieve_database_collum(self,collumn_name):
@@ -128,3 +135,38 @@ class Database():
 
             self.connect.close()
             return results_list
+        
+
+
+    def insert_new_tuning (self, tuning_values, tuning_name):
+
+        self.connect_to_database()
+
+        data_to_insert = (tuning_name, *tuning_values[0:13])
+        print(data_to_insert)
+
+        insert_query = f"""
+                                INSERT INTO TUNINGS (
+                                  Tuning_name, 
+                                  str_1_note, str_1_oct, 
+                                  str_2_note, str_2_oct, 
+                                  str_3_note, str_3_oct, 
+                                  str_4_note, str_4_oct, 
+                                  str_5_note, str_5_oct, 
+                                  str_6_note, str_6_oct
+                                )
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        while True:
+            try:
+                self.cursor.execute(insert_query, data_to_insert)
+                self.connect.commit()
+            except:
+                print("database insertion error")
+            
+            self.connect.close()
+            return
+
+        
+
+    def edit_tuning (self, tuning_values, tuning_name, changing_name,original_name=None):
+        pass

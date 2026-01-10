@@ -13,13 +13,16 @@ class main_menu(tk.Tk):
     def __init__(self,tuning_name):
         super().__init__()
 
-        
+        self.current_tuning=""
         self.title("Guitar Tuner")
         self.geometry("1600x900")
         self.configure(bg="lightblue")
         self.database = Database()
         self.database.check_exist()
-        self.current_tuning = self.database.retrive_tuning(tuning_name)
+        notes, octaves = self.database.retrive_tuning(tuning_name)
+        for i in range (0,len(notes)):
+            self.current_tuning +=( f"{notes[i]} {octaves[i]}, ")
+
         header_frame = tk.Frame(self, bg="lightblue")
         header_frame.pack(side="top",fill = "x", pady=10)
         tune_button=tk.Button(self, 
@@ -48,7 +51,7 @@ class main_menu(tk.Tk):
         
         current_tuning_display = tk.Label(header_frame,
                                           text = self.current_tuning,
-                                          width =15,
+                                          width =27,
                                           height = 2,
                                           font = ("arial",20),
                                           bg = "white"
@@ -277,8 +280,12 @@ class Tuning_editor (tk.Tk):
         )
         back_to_main_menu.pack(side = "bottom", pady=30)
 
-        tuning_namer_box = tk.Entry(name_input_frame, font=("arial",18), width = 30)
-        tuning_namer_box.pack(pady = 10,padx=50)
+        self.tuning_namer_box = tk.Entry(name_input_frame,
+                                        font=("arial",18),
+                                        width = 30,
+                                        justify="center")
+        
+        self.tuning_namer_box.pack(pady = 10,padx=50)
         tuning_namer_label = tk.Label(name_input_frame,
                                       font=("arial",14),
                                       text="Tuning Name",
@@ -307,11 +314,14 @@ class Tuning_editor (tk.Tk):
             
     
     def update_final_tuning(self):
+
         self.final_tuning_display = (", ".join(str(v) for v in self.final_tuning.values()))
         self.tuning_display.config(text= self.final_tuning_display)
 
 
     def create_new_tuning(self):
+        
+        self.tuning_namer_box.delete(0,tk.END) # clears the naming box for new tuning
         self.new_tuning=True
         self.final_tuning= {1:None,2:None,3:None,4:None,5:None,6:None}
         self.final_tuning_display = (", ".join(str(v) for v in self.final_tuning.values()))
@@ -321,12 +331,20 @@ class Tuning_editor (tk.Tk):
     
     def edit_tuning(self):
 
+        self.tuning_namer_box.delete(0,tk.END) # clears the naming box to load chosen tuning
+        tuning_values= ""
         self.new_tuning=False
         name_index=self.tunings_list.curselection()
         if name_index:
-            name_index = name_index=[0]
-            tuning_name=self.tunings_list.get(name_index)
-            tuning_values=self.database.retrive_tuning(tuning_name)
+            name_index = name_index[0]
+            self.tuning_name=self.tunings_list.get(name_index)
+            notes, octaves = self.database.retrive_tuning(self.tuning_name)
+            for i in range (0,len(notes)):
+                tuning_values += f"{notes[i]} {octaves[i]}, "
+                self.final_tuning[i+1]= f"{notes[i]} {octaves[i]}"
+
+            self.tuning_namer_box.insert(0,self.tuning_name)
+            
 
             self.tuning_display.config(text=tuning_values)
 
@@ -334,10 +352,43 @@ class Tuning_editor (tk.Tk):
             print("Error: No Tuning selected")
 
     def tuning_complete(self):
-        if self.new_tuning == True:
-            pass
+
+        tuning_proper_format=[]
+        can_continue=True
+        for i in range (1,7):
+            if self.final_tuning[i] == None:
+                can_continue=False
+
+        if can_continue== True:
+
+            for string_number, value in self.final_tuning.items(): # seperates note and octave for database insertion
+                print(value)
+                note, octave = str(value).split(" ")
+                print(note)
+                print(octave)
+                tuning_proper_format.append(note)
+                tuning_proper_format.append(int(octave))
+
+            new_tuning_name = self.tuning_namer_box.get()
+
+            if new_tuning_name =="":
+                print("Error: No Tuning Name Entered")#to be replaced with proper pop up error message and to include other invalid name inputs
+
+            elif self.new_tuning == True:
+            
+                print("Creating New Tuning")
+                self.database.insert_new_tuning(tuning_values=tuning_proper_format, tuning_name=new_tuning_name)
+
+            elif self.new_tuning == False:
+                if self.tuning_name != self.tuning_namer_box.get():
+                    changing_name = True
+                    self.database.edit_tuning(tuning_proper_format, new_tuning_name, changing_name, original_name=self.tuning_name)
+                else:
+                    self.database.edit_tuning(tuning_proper_format, new_tuning_name, changing_name=False)
+
         else:
-            pass
+            print("Error: Not all strings have been assigned a note")#to be replaced with proper pop up error message
+                
 
 
 
@@ -353,8 +404,7 @@ class Edit_or_choose_tuning(tk.Tk):
         self.edit_button = tk.Button(self,
                                 text="Edit or Add New Tuning",
                                 font=("arial",20),
-                                 command=self.to_tuning_editor
-                                )
+                                 command=self.to_tuning_editor)
     
         self.choose_button = tk.Button(self,
                                        text="Choose Tuning",
@@ -391,4 +441,4 @@ class Tuning_list(tk.Tk):
 
 
 test=main_menu(tuning_name="standard")
-test.mainloop
+test.mainloop()
