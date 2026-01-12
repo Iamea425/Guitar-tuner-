@@ -190,3 +190,15 @@ class Database():
         self.connect.commit()
         self.connect.close()
         return
+    
+    
+    def delete_tuning (self, tuning_name):  
+
+        self.connect_to_database()
+
+        delete_query = """ DELETE FROM TUNINGS WHERE Tuning_name = ? """
+
+        self.cursor.execute(delete_query, (tuning_name,))
+        self.connect.commit()
+        self.connect.close()
+        return

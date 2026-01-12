@@ -4,3 +4,4 @@ tkinter
 os
 sqlite3
 numpy
+scipy

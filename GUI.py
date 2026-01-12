@@ -5,8 +5,28 @@ from tkinter.ttk import *
 from getting_pitch import Getting_pitch
 from database import Database
 
+class global_methods():
 
-class main_menu(tk.Tk):
+    def __init__(self):
+        pass
+
+
+    def get_screen_size (self):
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+class main_menu(tk.Tk,global_methods):
 
 
 
@@ -15,7 +35,7 @@ class main_menu(tk.Tk):
 
         self.current_tuning=""
         self.title("Guitar Tuner")
-        self.geometry("1600x900")
+        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}")
         self.configure(bg="lightblue")
         self.database = Database()
         self.database.check_exist()
@@ -201,7 +221,7 @@ class Tuning_editor (tk.Tk):
                                    width=15,
                                    command=self.create_new_tuning)
         
-        new_tuning_button.pack(pady=(200,10),padx=(30,0),side="top")
+        new_tuning_button.pack(pady=(150,10),padx=(30,0),side="top")
 
         edit_tuning_button=tk.Button(self.database_organiser,
                                     text="Edit Tuning",
@@ -212,6 +232,14 @@ class Tuning_editor (tk.Tk):
         
         edit_tuning_button.pack(pady=200,padx=(30,0),side="top")
 
+        delete_tuning_button = tk.Button(self.database_organiser,
+                                text = "Delete Tuning",
+                                font = ("arial",16),
+                                height = 3,
+                                width = 15,
+                                command = self.delete_tuning )
+
+        delete_tuning_button.pack( padx=(30,0),side="top")
 
 
         notes=self.database.value_retrieval() # creates all combonations of note and octave
@@ -387,6 +415,9 @@ class Tuning_editor (tk.Tk):
         else:
             print("Error: Not all strings have been assigned a note")#to be replaced with proper pop up error message
                 
+
+    def delete_tuning(self):
+        pass
 
 
 
