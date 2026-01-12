@@ -467,7 +467,3 @@ class Tuning_list(tk.Tk):
         self.title("Choose Tuning")
         self.geometry("1600x900")
         self.configure(bg="lightblue")
-
-
-test=main_menu(tuning_name="standard")
-test.mainloop()
