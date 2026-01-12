@@ -37,9 +37,17 @@ class main_menu(general_methods):
         self.configure(bg="lightblue")
         self.database = Database()
         self.database.check_exist()
-        notes, octaves = self.database.retrive_tuning(tuning_name)
-        for i in range (0,len(notes)):
-            self.current_tuning +=( f"{notes[i]} {octaves[i]}, ")
+        try:
+            notes, octaves = self.database.retrive_tuning(tuning_name)
+            if notes is None or octaves is None:
+                # If tuning doesn't exist, use default values
+                self.current_tuning = "No tuning selected"
+            else:
+                for i in range (0,len(notes)):
+                    self.current_tuning +=( f"{notes[i]} {octaves[i]}, ")
+        except Exception as e:
+            print(f"Error: No Tuning selected")
+            self.current_tuning = "No tuning selected"
 
         header_frame = tk.Frame(self, bg="lightblue")
         header_frame.pack(side="top",fill = "x", pady=10)
@@ -89,9 +97,6 @@ class main_menu(general_methods):
         database_button.pack(expand=True,side="left",padx=2)
         tune_button.pack(expand=True,side="right",padx=1,pady=5)
 
-    
-        self.mainloop()
-
 
 
     def open_tuning_interface(self):
@@ -123,6 +128,7 @@ class Tuning_interface(general_methods):
         self.configure(bg="lightblue")
         self.audio_import=Getting_pitch()
         self.pitch = 0
+        self.update_job = None  # Initialize update_job
     
         self.bar=Progressbar(self,
                         orient=HORIZONTAL,
@@ -152,8 +158,7 @@ class Tuning_interface(general_methods):
         self.bar["value"]=0
         self.audio_import.getting_pitch_start()
         self.bar.pack(pady=100,side="top")
-        self.after(100, self.update_bar)
-        self.mainloop()
+        self.update_job = self.after(100, self.update_bar)
 
         
 
@@ -172,17 +177,38 @@ class Tuning_interface(general_methods):
 
             self.bar["value"]=self.pitch
             self.update()
-        self.after(300, self.update_bar)
+        # Only schedule the next update if the widget still exists
+        if self.winfo_exists():
+            self.update_job = self.after(300, self.update_bar)
 
     def update_hertz_value(self):
 
         self.hertz_value.config(text = f"{round(self.pitch, 1)} Hz")
 
     def return_to_main_menu(self):
-
+        # Cancel any pending after() calls
+        if hasattr(self, 'update_job'):
+            self.after_cancel(self.update_job)
         self.destroy()
         instance = main_menu(tuning_name="standard")#tuning_name to be dynamic in future
         instance.mainloop()
+
+    def __del__(self):
+        # Cancel any pending after() calls when the object is destroyed
+        if hasattr(self, 'update_job') and self.update_job:
+            try:
+                self.after_cancel(self.update_job)
+            except:
+                pass
+
+    def destroy(self):
+        # Cancel any pending after() calls before destroying the widget
+        if hasattr(self, 'update_job') and self.update_job:
+            try:
+                self.after_cancel(self.update_job)
+            except:
+                pass
+        super().destroy()
 
 
 

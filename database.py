@@ -101,22 +101,27 @@ class Database():
 
         note_retrieve_query = ("SELECT str_1_note,str_2_note,str_3_note,str_4_note,str_5_note,str_6_note FROM TUNINGS WHERE Tuning_name = ?")
         octave_retrieve_query = ("SELECT str_1_oct,str_2_oct,str_3_oct,str_4_oct,str_5_oct,str_6_oct FROM TUNINGS WHERE Tuning_name = ?")
-        while True:
-            try:
-                self.cursor.execute(note_retrieve_query,(tuning_name,))
-            except:
-                return "Note Retrival Error"
+        try:
+            self.cursor.execute(note_retrieve_query,(tuning_name,))
+            notes = self.cursor.fetchone()
             
-            notes=self.cursor.fetchone()
-
-            while True:
-                try:
-                    self.cursor.execute(octave_retrieve_query,(tuning_name,))
-                except:
-                    return "Octave Retrival Error"
-                break
-            octaves=self.cursor.fetchone()
+            if notes is None:
+                self.connect.close()
+                return None, None
+            
+            self.cursor.execute(octave_retrieve_query,(tuning_name,))
+            octaves = self.cursor.fetchone()
+            
+            if octaves is None:
+                self.connect.close()
+                return None, None
+                
+            self.connect.close()
             return list(notes), list(octaves)
+            
+        except Exception as e:
+            self.connect.close()
+            return None, None
         
     
     def retrieve_database_collum(self,collumn_name):
