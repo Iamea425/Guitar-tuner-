@@ -8,10 +8,6 @@ from database import Database
 
 
 class general_methods(tk.Tk):
-
-    def __init__(self):
-        super().__init__()
-
     
     def center_screen(self):
         self.update_idletasks()
@@ -24,17 +20,46 @@ class general_methods(tk.Tk):
 
 
 
-class main_menu(general_methods):
+class App_interface(general_methods):
 
-
-
-    def __init__(self,tuning_name):
+    def __init__(self):
         super().__init__()
-
-        self.current_tuning=""
         self.title("Guitar Tuner")
         self.center_screen()
-        self.configure(bg="lightblue")
+
+        container = tk.Frame(self)
+        container.pack(fill="both", expand=True)
+        print("the error is here")
+
+        self.frames={}
+
+        for Page in (main_menu, Tuning_editor, Tuning_interface, Edit_or_choose_tuning):
+            if Page == main_menu:
+                frame = Page(controller=self, parent=container, tuning_name="standard")
+            else:
+                frame = Page(parent=container, controller=self)
+            self.frames[Page] = frame
+            frame.grid(column=0,row=0 ,sticky="nsew")
+
+
+    def show_frame(self, Page):
+
+        self.frames[Page].tkraise()
+
+
+
+
+
+class main_menu(tk.Frame, general_methods):
+
+
+
+    def __init__(self,parent, controller, tuning_name="standard"):
+        super().__init__(parent, bg="lightblue")
+
+
+        self.controller =controller
+        self.current_tuning=""
         self.database = Database()
         self.database.check_exist()
         try:
@@ -101,16 +126,12 @@ class main_menu(general_methods):
 
     def open_tuning_interface(self):
         self.database.close_connection()
-        self.destroy()
-        instance=Tuning_interface()
-        instance.mainloop()
+        self.controller.show_frame(Tuning_interface)
 
 
     def open_database_menu(self):
         self.database.close_connection()
-        self.destroy()
-        instance=Edit_or_choose_tuning()
-        instance.mainloop()
+        self.controller.show_frame(Edit_or_choose_tuning)
 
 
 
@@ -121,11 +142,10 @@ class Tuning_interface(general_methods):
 
 
 
-    def __init__(self):
+    def __init__(self,parent,controller):
         super().__init__()
 
-        self.center_screen()
-        self.configure(bg="lightblue")
+        self.controller =controller
         self.audio_import=Getting_pitch()
         self.pitch = 0
         self.update_job = None  # Initialize update_job
@@ -187,40 +207,22 @@ class Tuning_interface(general_methods):
 
     def return_to_main_menu(self):
         # Cancel any pending after() calls
-        if hasattr(self, 'update_job'):
-            self.after_cancel(self.update_job)
-        self.destroy()
-        instance = main_menu(tuning_name="standard")#tuning_name to be dynamic in future
-        instance.mainloop()
-
-    def __del__(self):
-        # Cancel any pending after() calls when the object is destroyed
-        if hasattr(self, 'update_job') and self.update_job:
-            try:
-                self.after_cancel(self.update_job)
-            except:
-                pass
-
-    def destroy(self):
-        # Cancel any pending after() calls before destroying the widget
-        if hasattr(self, 'update_job') and self.update_job:
-            try:
-                self.after_cancel(self.update_job)
-            except:
-                pass
-        super().destroy()
+        self.controller.show_frame(main_menu)
 
 
 
 
 
 
-class Tuning_editor (general_methods):
 
 
-    def __init__(self):
+class Tuning_editor (App_interface):
+
+
+    def __init__(self,parent,controller):
         super().__init__()
 
+        self.controller =controller
         self.database=Database()
         self.title("Tuning Selector")
         self.center_screen()
@@ -351,9 +353,8 @@ class Tuning_editor (general_methods):
 
 
     def return_to_main_menu(self):
-        self.destroy()
-        instance = main_menu(tuning_name="standard")
-        instance.mainloop()
+        
+        self.controller.show_frame(main_menu)
 
 
     def confirm_choice(self,index, string_x):
@@ -447,13 +448,14 @@ class Tuning_editor (general_methods):
 
 
 
-class Edit_or_choose_tuning(general_methods):
+class Edit_or_choose_tuning(App_interface):
 
 
-    def __init__(self):
+    def __init__(self,parent,controller):
         super().__init__()
+        self.controller =controller
         self.title("Edit or Choose Tuning")
-        self.center_screen()
+
         self.configure(bg="lightblue")
 
         self.edit_button = tk.Button(self,
@@ -472,24 +474,20 @@ class Edit_or_choose_tuning(general_methods):
 
     def to_tuning_editor(self):
 
-        self.destroy()
-        instance=Tuning_editor()
-        instance.mainloop()
+        self.controller.show_frame(Tuning_editor)
     
     
     def to_tuning_list(self):
 
-        self.destroy()
-        instance=Tuning_list()
-        instance.mainloop()
+        self.controller.show_frame(Tuning_list)
 
 
 
-
-class Tuning_list(tk.Tk):
+class Tuning_list(App_interface):
     
-    def __init__(self):
+    def __init__(self,parent,controller):
         super().__init__()
+        self.controller =controller
         self.title("Choose Tuning")
         self.geometry("1600x900")
         self.configure(bg="lightblue")
