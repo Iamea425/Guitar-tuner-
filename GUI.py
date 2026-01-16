@@ -20,6 +20,7 @@ class general_methods(tk.Tk):
 
 
 
+
 class App_interface(general_methods):
 
     def __init__(self):
@@ -29,50 +30,53 @@ class App_interface(general_methods):
 
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
-        print("the error is here")
+        
+        # Configure grid weights so frames expand to fill screen
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+        
+        self.current_frame = None
 
         self.frames={}
 
-        for Page in (main_menu, Tuning_editor, Tuning_interface, Edit_or_choose_tuning):
+        for Page in (main_menu, Tuning_editor, Tuning_interface, Edit_or_choose_tuning, Tuning_list):
             if Page == main_menu:
                 frame = Page(controller=self, parent=container, tuning_name="standard")
             else:
                 frame = Page(parent=container, controller=self)
             self.frames[Page] = frame
-            frame.grid(column=0,row=0 ,sticky="nsew")
+            frame.grid(column=0, row=0, sticky="nsew")
 
+        # Display the main menu on startup
+        self.show_frame(main_menu)
 
     def show_frame(self, Page):
 
-        self.frames[Page].tkraise()
+        if self.current_frame is not None and hasattr(self.current_frame, "on_hide"):
+            self.current_frame.on_hide()
+
+        frame = self.frames[Page]
+        frame.tkraise()  
+        self.current_frame = frame
+
+        if hasattr(frame, "on_show"):
+            frame.on_show()
 
 
 
 
-
-class main_menu(tk.Frame, general_methods):
+class main_menu(tk.Frame):
 
 
 
     def __init__(self,parent, controller, tuning_name="standard"):
         super().__init__(parent, bg="lightblue")
 
-
+        self.tuning_name= tuning_name
         self.controller =controller
         self.current_tuning=""
         self.database = Database()
-        self.database.check_exist()
-        try:
-            notes, octaves = self.database.retrive_tuning(tuning_name)
-            if notes is None or octaves is None:
-                # If tuning doesn't exist, use default values
-                self.current_tuning = "No tuning selected"
-            else:
-                for i in range (0,len(notes)):
-                    self.current_tuning +=( f"{notes[i]} {octaves[i]}, ")
-        except Exception as e:
-            print(f"Error: No Tuning selected")
-            self.current_tuning = "No tuning selected"
+
 
         header_frame = tk.Frame(self, bg="lightblue")
         header_frame.pack(side="top",fill = "x", pady=10)
@@ -100,7 +104,7 @@ class main_menu(tk.Frame, general_methods):
                                     command=self.open_database_menu,
                                     bg="white")
         
-        current_tuning_display = tk.Label(header_frame,
+        self.current_tuning_display = tk.Label(header_frame,
                                           text = self.current_tuning,
                                           width =27,
                                           height = 2,
@@ -117,7 +121,7 @@ class main_menu(tk.Frame, general_methods):
                                     
 
         welcome_label.pack(side="top",pady=10)
-        current_tuning_display.pack(side = "top", expand = True, padx=2 )
+        self.current_tuning_display.pack(side = "top", expand = True, padx=2 )
         tuning_label.pack(side ="top",expand=True, padx=2)
         database_button.pack(expand=True,side="left",padx=2)
         tune_button.pack(expand=True,side="right",padx=1,pady=5)
@@ -134,16 +138,38 @@ class main_menu(tk.Frame, general_methods):
         self.controller.show_frame(Edit_or_choose_tuning)
 
 
+    def on_show(self):
+        print("this is running")
+        self.database.check_exist()
+        try:
+            notes, octaves = self.database.retrive_tuning(self.tuning_name)
+            if notes is None or octaves is None:
+                # If tuning doesn't exist, use default values
+                self.current_tuning = "No tuning selected"
+            else:
+                for i in range (0,len(notes)):
+                    self.current_tuning +=( f"{notes[i]} {octaves[i]}, ")
+        except Exception as e:
+            print(f"Error: No Tuning selected")
+            self.current_tuning = "No tuning selected"
+        
+        self.current_tuning_display.configure(text=self.current_tuning)
+
+
+    def on_hide(self):
+        self.database.close_connection()
 
 
 
 
-class Tuning_interface(general_methods):
+
+
+class Tuning_interface(tk.Frame):
 
 
 
     def __init__(self,parent,controller):
-        super().__init__()
+        super().__init__(parent, bg="lightblue")
 
         self.controller =controller
         self.audio_import=Getting_pitch()
@@ -176,6 +202,8 @@ class Tuning_interface(general_methods):
         back_to_main_menu.pack(expand=True,side="bottom")
 
         self.bar["value"]=0
+
+    def on_show(self):
         self.audio_import.getting_pitch_start()
         self.bar.pack(pady=100,side="top")
         self.update_job = self.after(100, self.update_bar)
@@ -210,23 +238,24 @@ class Tuning_interface(general_methods):
         self.controller.show_frame(main_menu)
 
 
+    def on_hide(self):
+        self.audio_import.stop()
 
 
 
 
 
 
-class Tuning_editor (App_interface):
+
+
+class Tuning_editor (tk.Frame):
 
 
     def __init__(self,parent,controller):
-        super().__init__()
+        super().__init__(parent, bg="lightblue")
 
         self.controller =controller
         self.database=Database()
-        self.title("Tuning Selector")
-        self.center_screen()
-        self.configure(bg="lightblue")
         self.new_tuning=True
         note_list=[]
         self.final_tuning= {1:None,2:None,3:None,4:None,5:None,6:None}
@@ -446,17 +475,21 @@ class Tuning_editor (App_interface):
     def delete_tuning(self):
         pass
 
+    def on_show(self):
+        pass
+
+    def on_hide(self):
+        self.database.close_connection()
 
 
-class Edit_or_choose_tuning(App_interface):
+
+class Edit_or_choose_tuning(tk.Frame):
 
 
     def __init__(self,parent,controller):
-        super().__init__()
+        super().__init__(parent, bg= "lightblue")
         self.controller =controller
-        self.title("Edit or Choose Tuning")
 
-        self.configure(bg="lightblue")
 
         self.edit_button = tk.Button(self,
                                 text="Edit or Add New Tuning",
@@ -483,11 +516,10 @@ class Edit_or_choose_tuning(App_interface):
 
 
 
-class Tuning_list(App_interface):
+class Tuning_list(tk.Frame):
     
     def __init__(self,parent,controller):
-        super().__init__()
+        super().__init__(parent,bg="lightblue")
         self.controller =controller
-        self.title("Choose Tuning")
-        self.geometry("1600x900")
-        self.configure(bg="lightblue")
+
+
