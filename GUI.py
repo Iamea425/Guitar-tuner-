@@ -20,7 +20,6 @@ class general_methods(tk.Tk):
 
 
 
-
 class App_interface(general_methods):
 
     def __init__(self):
@@ -140,6 +139,7 @@ class main_menu(tk.Frame):
 
     def on_show(self):
         print("this is running")
+        self.current_tuning=""
         self.database.check_exist()
         try:
             notes, octaves = self.database.retrive_tuning(self.tuning_name)
@@ -152,6 +152,7 @@ class main_menu(tk.Frame):
         except Exception as e:
             print(f"Error: No Tuning selected")
             self.current_tuning = "No tuning selected"
+        print(self.current_tuning)
         
         self.current_tuning_display.configure(text=self.current_tuning)
 
@@ -213,6 +214,7 @@ class Tuning_interface(tk.Frame):
         
 
     def update_bar(self):
+
         self.pitch =self.audio_import.getting_pitch_extraction()
         print(self.pitch)
         self.update_hertz_value()

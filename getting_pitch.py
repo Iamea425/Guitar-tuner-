@@ -75,6 +75,11 @@ class Getting_pitch():
         
         FFT_SIZE = 8192 
         windowed = self.data[:FFT_SIZE] * np.hamming(FFT_SIZE)
+
+        continue_analysis= self.check_for_signal(windowed)
+
+        if continue_analysis == False:
+            return 0
         
         # FFT magnitude spectrum
         spectrum = np.abs(np.fft.rfft(windowed, n=65536 )) #zero pads the FFT size to increase percieved resolution
@@ -115,3 +120,12 @@ class Getting_pitch():
             fundamental_frequency=0
         
         return fundamental_frequency
+    
+
+    def check_for_signal(self, windowed):
+
+        signal_strength = np.sum(windowed ** 2)
+        if signal_strength < 0.0001:
+            return False
+        else:
+            return True
