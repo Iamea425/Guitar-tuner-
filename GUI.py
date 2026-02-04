@@ -7,28 +7,33 @@ from database import Database
 
 
 
-class general_methods(tk.Tk):
-    
-    def center_screen(self):
-        self.update_idletasks()
-
-        screen_width = self.winfo_screenwidth()
-        screen_heigth = self.winfo_screenheight()
-
-        self.geometry(f"{screen_width}x{screen_heigth}+0+0")
-
-
-
-
-class App_interface(general_methods):
+class general_methods():
 
     def __init__(self):
+        self.chosen_tuning_name = ""
+    
+
+    def start_up (self):
+        try:
+            database_object= Database()
+            tuning_names=database_object.retrieve_database_collum("Tuning_name")
+            self.chosen_tuning_name = str(tuning_names[0])
+        except:
+            self.chosen_tuning_name =None
+        print(self.chosen_tuning_name)
+
+
+class App_interface(tk.Tk,general_methods):
+
+    def __init__(self):
+        self.start_up()
         super().__init__()
         self.title("Guitar Tuner")
         self.center_screen()
 
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
+
         
         # Configure grid weights so frames expand to fill screen
         container.grid_rowconfigure(0, weight=1)
@@ -40,7 +45,7 @@ class App_interface(general_methods):
 
         for Page in (main_menu, Tuning_editor, Tuning_interface, Edit_or_choose_tuning, Tuning_list):
             if Page == main_menu:
-                frame = Page(controller=self, parent=container, tuning_name="standard")
+                frame = Page(controller=self, parent=container)
             else:
                 frame = Page(parent=container, controller=self)
             self.frames[Page] = frame
@@ -61,17 +66,25 @@ class App_interface(general_methods):
         if hasattr(frame, "on_show"):
             frame.on_show()
 
+    
+    def center_screen(self):
+        self.update_idletasks()
+
+        screen_width = self.winfo_screenwidth()
+        screen_heigth = self.winfo_screenheight()
+
+        self.geometry(f"{screen_width}x{screen_heigth}+0+0")
 
 
 
-class main_menu(tk.Frame):
+
+class main_menu(tk.Frame,general_methods):
 
 
 
-    def __init__(self,parent, controller, tuning_name="standard"):
+    def __init__(self,parent, controller):
         super().__init__(parent, bg="lightblue")
 
-        self.tuning_name= tuning_name
         self.controller =controller
         self.current_tuning=""
         self.database = Database()
@@ -142,7 +155,7 @@ class main_menu(tk.Frame):
         self.current_tuning=""
         self.database.check_exist()
         try:
-            notes, octaves = self.database.retrive_tuning(self.tuning_name)
+            notes, octaves = self.database.retrive_tuning(self.chosen_tuning_name)
             if notes is None or octaves is None:
                 # If tuning doesn't exist, use default values
                 self.current_tuning = "No tuning selected"
@@ -165,7 +178,7 @@ class main_menu(tk.Frame):
 
 
 
-class Tuning_interface(tk.Frame):
+class Tuning_interface(tk.Frame,general_methods):
 
 
 
@@ -250,7 +263,8 @@ class Tuning_interface(tk.Frame):
 
 
 
-class Tuning_editor (tk.Frame):
+
+class Tuning_editor (tk.Frame,general_methods):
 
 
     def __init__(self,parent,controller):
@@ -485,7 +499,7 @@ class Tuning_editor (tk.Frame):
 
 
 
-class Edit_or_choose_tuning(tk.Frame):
+class Edit_or_choose_tuning(tk.Frame,general_methods):
 
 
     def __init__(self,parent,controller):
@@ -518,7 +532,7 @@ class Edit_or_choose_tuning(tk.Frame):
 
 
 
-class Tuning_list(tk.Frame):
+class Tuning_list(tk.Frame,general_methods):
     
     def __init__(self,parent,controller):
         super().__init__(parent,bg="lightblue")
