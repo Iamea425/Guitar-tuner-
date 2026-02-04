@@ -76,7 +76,7 @@ class Getting_pitch():
         FFT_SIZE = 8192 
         windowed = self.data[:FFT_SIZE] * np.hamming(FFT_SIZE)
 
-        continue_analysis= self.check_for_signal(windowed)
+        continue_analysis= self.check_for_signal(windowed)# stops random noise from being generated when no input is recieved 
 
         if continue_analysis == False:
             return 0
