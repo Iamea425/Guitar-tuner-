@@ -205,7 +205,7 @@ class main_menu(tk.Frame,general_methods):
 class Tuning_interface(tk.Frame,general_methods):
 
 
-
+ 
     def __init__(self,parent,controller,chosen_tuning_name):
 
         super().__init__(parent, bg="lightblue")
@@ -221,6 +221,7 @@ class Tuning_interface(tk.Frame,general_methods):
         self.target_pitch=None
         self.filtered_bar_value = 50
         self.filter_strength = 0.2
+        self.audio_import.getting_pitch_start()
 
         self.bar=Progressbar(self,
                         orient=HORIZONTAL,
@@ -268,7 +269,6 @@ class Tuning_interface(tk.Frame,general_methods):
 
     def on_show(self):
         self.run =True
-        self.audio_import.getting_pitch_start()
         self.bar.pack(pady=100,side="top")
         self.update_job = self.after(100, self.update_bar)
 
@@ -605,13 +605,19 @@ class Tuning_editor (tk.Frame,general_methods):
             new_tuning_name = self.tuning_namer_box.get()
 
             if new_tuning_name =="":
-                print("Error: No Tuning Name Entered")#to be replaced with proper pop up error message and to include other invalid name inputs
+                mb.showerror("Error","No Name Entered", parent= self)
 
             elif self.new_tuning == True:
+
+                if self.is_name_repeat(new_tuning_name) == False:
             
-                print("Creating New Tuning")
-                new_tuning_name = self.tuning_namer_box.get()
-                self.database.insert_new_tuning(tuning_values=tuning_proper_format, tuning_name = new_tuning_name)
+                    print("Creating New Tuning")
+                    new_tuning_name = self.tuning_namer_box.get()
+                    self.database.insert_new_tuning(tuning_values=tuning_proper_format, tuning_name = new_tuning_name)
+                
+                else:
+                    
+                    mb.showerror("Error",f"A Tuning is Already Named {new_tuning_name} Please Try Again")
 
             elif self.new_tuning == False:
 
@@ -619,7 +625,8 @@ class Tuning_editor (tk.Frame,general_methods):
 
 
         else:
-            print("Error: Not all strings have been assigned a note")#to be replaced with proper pop up error message
+
+            mb.showerror("Error", "Not All Strings Have Been Assigned a Note")
         
         self.update_database_list()
                 
@@ -648,6 +655,15 @@ class Tuning_editor (tk.Frame,general_methods):
         tuning_name_list=self.database.retrieve_database_collum("Tuning_name")
         for names in tuning_name_list:
             self.tunings_list.insert(tk.END,names)
+
+    
+    def is_name_repeat(self,new_tuning_name):
+
+        current_name_list = self.database.retrieve_database_collum("Tuning_name")
+        for name in current_name_list:
+            if name == new_tuning_name:
+                return True
+        return False
 
 
 
