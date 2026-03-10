@@ -275,7 +275,6 @@ class Tuning_interface(tk.Frame,general_methods):
     def on_hide(self):
         self.run = False
         print ("false")
-        self.audio_import.stop()
 
 
     def update_bar(self):
@@ -302,6 +301,10 @@ class Tuning_interface(tk.Frame,general_methods):
     def return_to_main_menu(self):
         # Cancel any pending after() calls
         self.controller.show_frame(main_menu)
+
+
+    def on_hide(self):
+        self.audio_import.stop()
 
 
     def recieve_tuning(self,tuning_name):
