@@ -1,6 +1,7 @@
 import numpy as np
 from audio import recording
 from scipy.signal import butter,filtfilt 
+import math
 
 class Getting_pitch():
 
@@ -39,9 +40,9 @@ class Getting_pitch():
         
         # self.data=self.increase_gain()
         self.data=np.reshape(self.data,(-1,))
-        self.data=self.harmonic_filter()
-        self.data=np.array(self.data,np.float32)
 
+        self.data=np.array(self.data,np.float32)
+        self.data = self.increase_gain()
 
         final_data_Hz=self.FT_analyser()
 
@@ -84,14 +85,19 @@ class Getting_pitch():
             return 0
         
         # FFT magnitude spectrum
-        spectrum = np.abs(np.fft.rfft(windowed, n=65536 )) #zero pads the FFT size to increase percieved resolution
-        freqs = np.fft.rfftfreq(65536, 1/self.__rate)
-        
+        #spectrum = np.abs(np.fft.rfft(windowed, n=65536 )) #zero pads the FFT size to increase percieved resolution
+        #freqs = np.fft.rfftfreq(65536, 1/self.__rate)
+        zero_padded_data = self.__zero_pad(windowed)
+        full_fft = np.array(self.fourier_algorithm(zero_padded_data.tolist()), dtype = np.complex128)
+        spectrum = np.abs(full_fft[:65536 // 2+1])
+        freqs= np.arange(0, 65536 // 2+1) * (self.__rate / 65536)
+
         # Initialize HPS spectrum
         hps_spec = spectrum.copy()
         
         # Multiply downsampled spectra
         for h in range(2, harmonics+1):
+
             downsampled = spectrum[::h]
             hps_spec[:len(downsampled)] *= downsampled
         
@@ -131,3 +137,48 @@ class Getting_pitch():
             return False
         else:
             return True
+        
+
+
+    def fourier_algorithm(self,signal):
+
+        N = len(signal)
+    
+        # Base case: one value
+        if N == 1:
+            return signal
+        
+        # Ensure length is power of 2
+        if N % 2 != 0:
+            raise ValueError("Signal length must be a power of 2")
+        
+        # Split into even and odd samples
+        even = self.fourier_algorithm(signal[0::2])
+        odd = self.fourier_algorithm(signal[1::2])
+        
+        result = [0] * N
+        
+        for k in range(N // 2):
+            
+            angle = -2 * math.pi * k / N
+            
+            # Complex rotation factor
+            twiddle = complex(math.cos(angle), math.sin(angle))
+            
+            t = twiddle * odd[k]
+            
+            result[k] = even[k] + t
+            result[k + N//2] = even[k] - t
+        
+        return result
+    
+    
+
+    def __zero_pad(self,data, pad_by =65536):
+        
+        if len(data)< pad_by:
+            fft_in = np.pad(data, (0, pad_by - len(data)))
+        else:
+            fft_in = data[:pad_by]
+
+        return fft_in
