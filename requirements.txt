@@ -1,4 +1,0 @@
-pyaudio
-tk
-numpy
-scipy
