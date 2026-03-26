@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter.ttk import * 
 from getting_pitch import Getting_pitch
 from database import Database
+from audio import recording
 import math
 import tkinter.messagebox as mb
 
@@ -269,12 +270,14 @@ class Tuning_interface(tk.Frame,general_methods):
 
     def on_show(self):
         self.run =True
+        self.audio_import.getting_pitch_start()
         self.bar.pack(pady=100,side="top")
         self.update_job = self.after(100, self.update_bar)
 
+
     def on_hide(self):
         self.run = False
-        print ("false")
+        self.audio_import.stop()
 
 
     def update_bar(self):
@@ -282,7 +285,6 @@ class Tuning_interface(tk.Frame,general_methods):
         if self.run==True:
             self.pitch =self.audio_import.getting_pitch_extraction()
             self.update_hertz_value()
-            
 
 
             bar_value = self.tuning_bar_scaling()
@@ -302,9 +304,6 @@ class Tuning_interface(tk.Frame,general_methods):
         # Cancel any pending after() calls
         self.controller.show_frame(main_menu)
 
-
-    def on_hide(self):
-        self.audio_import.stop()
 
 
     def recieve_tuning(self,tuning_name):
@@ -384,7 +383,7 @@ class Tuning_interface(tk.Frame,general_methods):
     def is_in_tune(self):
 
         try:
-            if self.pitch > self.target_pitch+0.2 or self.pitch < self.target_pitch - 0.2:
+            if self.pitch <= self.target_pitch+0.2 or self.pitch >= self.target_pitch - 0.2:
                 self.hertz_value.config(fg="red")
             else:
                 self.hertz_value(fg="green")
@@ -607,6 +606,9 @@ class Tuning_editor (tk.Frame,general_methods):
             if new_tuning_name =="":
                 mb.showerror("Error","No Name Entered", parent= self)
 
+            elif self.is_too_long(new_tuning_name) == True:
+                mb.showerror("Error","Tuning Name is too Long. Tuning Names Must Not be Over 20 characters.")
+
             elif self.new_tuning == True:
 
                 if self.is_name_repeat(new_tuning_name) == False:
@@ -664,6 +666,19 @@ class Tuning_editor (tk.Frame,general_methods):
             if name == new_tuning_name:
                 return True
         return False
+
+
+    def is_too_long(self,new_tuning_name):
+
+        if len(new_tuning_name) >21:
+            return True
+        else:
+            return False
+    
+
+
+
+
 
 
 
@@ -735,8 +750,8 @@ class Tuning_list(tk.Frame,general_methods):
         
         main_menu_button.pack(side="bottom",pady=30)
 
-        tuning_name_list=self.database.retrieve_database_collum("Tuning_name")
-        for names in tuning_name_list:
+        self.tuning_name_list=self.database.retrieve_database_collum("Tuning_name")
+        for names in self.tuning_name_list:
             self.tunings_list.insert(tk.END,names)
 
         self.current_tuning_display = tk.Label(self,
@@ -805,3 +820,15 @@ class Tuning_list(tk.Frame,general_methods):
 
         self.controller.frames[main_menu].recieve_tuning(self.__chosen_tuning)
         self.controller.frames[Tuning_interface].recieve_tuning(self.__chosen_tuning)
+
+
+    def does_current_tuning_exist(self):
+
+        for i in self.tuning_name_list:
+             
+             if i == self.current_tuning:
+                 return False
+        
+        return True
+
+    
