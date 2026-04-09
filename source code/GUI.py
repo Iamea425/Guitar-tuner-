@@ -270,6 +270,7 @@ class Tuning_interface(tk.Frame,general_methods):
 
     def on_show(self):
         self.run =True
+        self.tuning_data_retrival()
         self.audio_import.getting_pitch_start()
         self.bar.pack(pady=100,side="top")
         self.update_job = self.after(100, self.update_bar)
@@ -383,11 +384,15 @@ class Tuning_interface(tk.Frame,general_methods):
     def is_in_tune(self):
 
         try:
-            if self.pitch <= self.target_pitch+0.2 or self.pitch >= self.target_pitch - 0.2:
+            if self.target_pitch is None or self.target_pitch <= 0 or self.pitch <= 0:
                 self.hertz_value.config(fg="red")
+                return
+
+            if abs(self.pitch - self.target_pitch) <= 0.5:
+                self.hertz_value.config(fg="green")   # in tune
             else:
-                self.hertz_value(fg="green")
-        except:
+                self.hertz_value.config(fg="red")     # out of tune
+        except Exception:
             self.hertz_value.config(fg="red")
 
 
@@ -817,7 +822,8 @@ class Tuning_list(tk.Frame,general_methods):
 
 
     def send_tuning (self):
-
+        if self.does_current_tuning_exist == False:
+            self.__chosen_tuning = None
         self.controller.frames[main_menu].recieve_tuning(self.__chosen_tuning)
         self.controller.frames[Tuning_interface].recieve_tuning(self.__chosen_tuning)
 
@@ -831,4 +837,3 @@ class Tuning_list(tk.Frame,general_methods):
         
         return True
 
-    

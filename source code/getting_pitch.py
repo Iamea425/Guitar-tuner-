@@ -59,6 +59,18 @@ class Getting_pitch():
     def increase_gain (self):
         return (np.clip(self.data*1.25,-1.0,1.0))
     
+
+
+    def harmonic_filter(self, cutoff=1000, fs=44100, order=5):
+        nyquist = 0.5 * fs  # nyquist frequency (half of sampling rate)
+        normal_cutoff = cutoff / nyquist  # normalize cutoff frequency
+
+        
+        b, a = butter(order, normal_cutoff, btype='low', analog=False)
+
+        # Apply the filter to the audio data
+        filtered_data = filtfilt(b, a, self.data)
+        return filtered_data
     
 
 
@@ -72,12 +84,12 @@ class Getting_pitch():
         if continue_analysis == False:
             return 0
         
-        # prepares the microphone input for the FT algorithm
+        # FFT magnitude spectrum
+        #spectrum = np.abs(np.fft.rfft(windowed, n=65536 )) #zero pads the FFT size to increase percieved resolution
+        #freqs = np.fft.rfftfreq(65536, 1/self.__rate)
         zero_padded_data = self.__zero_pad(windowed)
         full_fft = np.array(self.fourier_algorithm(zero_padded_data.tolist()), dtype = np.complex128)
-
         spectrum = np.abs(full_fft[:65536 // 2+1])
-        
         freqs= np.arange(0, 65536 // 2+1) * (self.__rate / 65536)
 
         # Initialize HPS spectrum
